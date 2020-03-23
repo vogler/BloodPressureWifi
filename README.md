@@ -10,18 +10,18 @@ Plan: Add a Wemos D1 mini to my Beurer blood pressure monitor to publish results
   - Wemos D1 mini
 - Logic Analyzer Software:
   - https://sigrok.org/wiki/PulseView
-    - Install [WinUSB driver with Zadig](https://sigrok.org/wiki/Fx2lafw) and then select driver [fx2lafw](https://sigrok.org/wiki/Fx2lafw) in PulseView ([screenshot](PulseView-driver.png)).
+    - Install [WinUSB driver with Zadig](https://sigrok.org/wiki/Fx2lafw) and then select driver [fx2lafw](https://sigrok.org/wiki/Fx2lafw) in PulseView.
   - https://www.saleae.com
   - https://www.ikalogic.com/scanastudio/
 - Analyze HEX: https://hexed.it
-- Application notes on oscillation signal: http://ww1.microchip.com/downloads/en/AppNotes/00001556B.pdf http://www.8051projects.net/files/public/1235208942_12665_FT14949_an1571.pdf
+- Application notes on oscillation signal: [1](http://ww1.microchip.com/downloads/en/AppNotes/00001556B.pdf) [2](http://www.8051projects.net/files/public/1235208942_12665_FT14949_an1571.pdf)
 - Chips in my Beurer blood pressure monitor:
   - CS-20A pressure sensor: https://brmlab.cz/user/jenda/cs-20a
-  - CMOS Serial EEPROM: [S-93C66BD](S-93C66BD.pdf): http://www.farnell.com/datasheets/46810.pdf (pins: page 2, lower half)
+  - CMOS Serial EEPROM: S-93C66BD ([web](http://www.farnell.com/datasheets/46810.pdf), [pdf](S-93C66BD.pdf); pins: page 2, lower half)
     - 256-word × 16-bit
     - Soldered cables to pins and connected to logic analyzer: CS:yellow:D0, SK:orange:D1, DI:red:D2, DO:brown:D3, GND:black
     - [SPI decoder settings](PulseView-SPI-channels.png), [first three blocks](PulseView-SPI-data.png)
-    - Can also use the [Microwire decoder with a stacked protocol decoder for 93xx EEPROM](PulseView-Microwirte-channels.png) with 8 bit address size and 16 bit word size, but for writes it complains with 'Not enough word bits'
+    - Can also use the [Microwire decoder with a stacked protocol decoder for 93xx EEPROM](PulseView-Microwire-channels.png) with 8 bit address size and 16 bit word size, but for writes it complains with ['Not enough word bits'](PulseView-Microwire-data.png).
     - Data is only written to EEPROM once the device is turned off after measuring.
 - Measured a couple of times to figure out what the data means. A memory slot is 4x 16 bit words of data:
 ~~~
