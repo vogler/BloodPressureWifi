@@ -3,9 +3,9 @@
 #define MQTT_TOPIC "sensors/blood-pressure"
 #include "wifi_mqtt.h"
 
-#define CK D5 // SCK_PIN, SK: serial clock input
-#define DI D7 // MOSI_PIN, serial data input
-#define CS D8 // SS_PIN, chip select input
+#define CK D5 // SCK_PIN, SK: serial clock input; orange
+#define DI D7 // MOSI_PIN, serial data input; red
+#define CS D8 // SS_PIN, chip select input; yellow
 
 volatile bool cs; // chip select signal
 volatile bool di; // data input signal
@@ -76,8 +76,11 @@ void setup() {
   // Serial.setDebugOutput(true);
   Serial.println("setup");
 
-  setup_wifi();
+  pinMode(LED_BUILTIN, OUTPUT); // LED on
+  digitalWrite(LED_BUILTIN, HIGH); // LED off
+  setup_wifi(); // 68-76mA, afterwards 20-40mA; both at 3.3 and 5V
   setup_mqtt();
+  digitalWrite(LED_BUILTIN, LOW); // LED on
 
   pinMode(CS, INPUT);
   pinMode(CK, INPUT);
@@ -97,7 +100,10 @@ void loop(){
     Serial.printf("hiBP: %d, loBP: %d, HR: %d\n", hiBP, loBP, HR);
     mqtt.publish(MQTT_TOPIC, json("\"hiBP\": %d, \"loBP\": %d, \"HR\": %d", hiBP, loBP, HR));
     Serial.println("Published to MQTT.");
+    digitalWrite(LED_BUILTIN, HIGH); // LED off
     HR = 0; n = 0;
     // ESP.reset(); // this may reset before message is published! https://github.com/knolleary/pubsubclient/issues/452#issuecomment-505059218
+  } else if (millis() > 30 * 1000) { // deep sleep after 30s
+    ESP.deepSleep(0); // 0.2-0.4mA both at 3.3 and 5V; too much to keep it connected (1440mAh)
   }
 }
