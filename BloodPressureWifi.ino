@@ -1,89 +1,31 @@
+#include<SPI.h>
+volatile int i = 0;
+byte myArray[2];
 
-// ====================================================================
-// Arduino code example for SPI Slave Mode
-// Read unsigned short (two bytes) from SPI, send word to serial port
-// On 16 MHz Arduino, can work at > 500 words per second
-// J.Beale July 19 2011
-// https://forum.arduino.cc/index.php?topic=66998.0
-// ====================================================================
-
-#include <SPI.h>
-
-#define SCK_PIN   D5
-#define MISO_PIN  D6
-#define MOSI_PIN  D7
-#define SS_PIN    D8
-
-#define UL unsigned long
-#define US unsigned short
-
-void SlaveInit(void) {
- // Set MISO output, all others input
- pinMode(SCK_PIN, INPUT);
- pinMode(MOSI_PIN, INPUT);
- pinMode(MISO_PIN, OUTPUT);  // (only if bidirectional mode needed)
- pinMode(SS_PIN, INPUT);
-
- /*  Setup SPI control register SPCR
- SPIE - Enables the SPI interrupt when 1
- SPE - Enables the SPI when 1
- DORD - Sends data least Significant Bit First when 1, most Significant Bit first when 0
- MSTR - Sets the Arduino in master mode when 1, slave mode when 0
- CPOL - Sets the data clock to be idle when high if set to 1, idle when low if set to 0
- CPHA - Samples data on the trailing edge of the data clock when 1, leading edge when 0
- SPR1 and SPR0 - Sets the SPI speed, 00 is fastest (4MHz) 11 is slowest (250KHz)   */
-
- // enable SPI subsystem and set correct SPI mode
- // SPCR = (1<<SPE)|(0<<DORD)|(0<<MSTR)|(0<<CPOL)|(0<<CPHA)|(0<<SPR1)|(1<<SPR0);
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(SS, INPUT);
+  pinMode(MOSI, INPUT);
+  pinMode(SCK, INPUT);
+  SPCR |= _BV(SPE);
+  SPI.attachInterrupt();  //allows SPI interrupt
 }
 
-// SPI status register: SPSR
-// SPI data register: SPDR
-
-// ================================================================
-// read in short as two bytes, with high-order byte coming in first
-// ================================================================
-unsigned short Read2Bytes(void) {
-   union {
-   unsigned short svar;
-   byte c[2];
- } w;        // allow access to 2-byte word, or separate bytes
-
- while(!(SPSR & (1<<SPIF))) ; // SPIF bit set when 8 bits received
- w.c[1] = SPDR;               // store high-order byte
- while(!(SPSR & (1<<SPIF))) ; // SPIF bit set when 8 bits received
- w.c[0] = SPDR;               // store low-order byte
- return w.svar; // send back unsigned short value
+void loop(void)
+{
+  if (i == 2)
+  {
+    int x = (int)myArray[0]<<8|(int)myArray[1];
+    Serial.print("Received 16-bit data item from Master: ");
+    Serial.println(x, HEX);
+    i=0;
+    Serial.println("=============================================");
+  }
 }
 
-void setup() {
- Serial.begin(115200);
- SlaveInit();  // set up SPI slave mode
- delay(10);
- Serial.println("SPI port reader v0.1");
+void ICACHE_RAM_ATTR SPI_STC_vect()   //Inerrrput routine function
+{
+  myArray[i] = SPDR;
+  i++;
 }
-
-// ============================================================
-// main loop: read in short word (2 bytes) from external SPI master
-// and send value out via serial port
-// On 16 MHz Arduino, works at > 500 words per second
-// ============================================================
-void loop() {
- unsigned short word1;
- byte flag1;
-
-   // Note: digitalRead() takes 4.1 microseconds
-   // NOTE: SS_PIN cannot be properly read this way while SPI module is active!
-   while (digitalRead(SS_PIN)==0) {} // wait until SlaveSelect goes low (active)
-
-   SPCR = (1<<SPE)|(0<<DORD)|(0<<MSTR)|(0<<CPOL)|(0<<CPHA)|(0<<SPR1)|(1<<SPR0); // SPI on
-   word1 = Read2Bytes();          // read unsigned short value
-   SPCR = (0<<SPE)|(0<<DORD)|(0<<MSTR)|(0<<CPOL)|(0<<CPHA)|(0<<SPR1)|(1<<SPR0);  // SPI off
-
-//    float seconds = millis()/1000.0;  // time stamp takes more serial time, of course
-//    Serial.print(seconds,3);
-//    Serial.print(",");
-   Serial.print(word1);
-   Serial.println();
-
-}  // end loop()
