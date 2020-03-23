@@ -19,7 +19,7 @@ void ICACHE_RAM_ATTR CS_change() {
     i = 26; b = 0; // clear buffer
   } else if (b) {
     Serial.println(b, BIN);
-    Serial.println((b & mask_data), HEX);
+    Serial.println(b & mask_data, HEX);
     Serial.println();
   }
 }
@@ -36,7 +36,7 @@ void ICACHE_RAM_ATTR DI_change() {
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(500000);
   // Serial.setDebugOutput(true);
   Serial.println("setup");
 
