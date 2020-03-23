@@ -34,3 +34,4 @@ Block 6: Write address 8, bin: 0011110001010111, hex: 3C 57, ints: 60 (HR) 87 (l
 Block 7: Write address 0, bin: 0000001000000010, hex: 02 02, ints: 2 2 (number of occupied memory slots)
 Block 8: DI: 100 00xxxxxx = Write disable
 ~~~
+- Did not find working SPI slave example for ESP8266. Tried: [Arduino SPI](https://forum.arduino.cc/index.php?topic=66998.0) (ESP8266 SPI.h does not expose SPI registers SPSR SPDR), [SPISlave_Test](https://github.com/esp8266/Arduino/blob/master/libraries/SPISlave/examples/SPISlave_Test/SPISlave_Test.ino) (did not receive anything, maybe SS inverted?). Not tried: [ESP8266_Microwire_EEPROM](https://github.com/MetalPhreak/ESP8266_Microwire_EEPROM).
