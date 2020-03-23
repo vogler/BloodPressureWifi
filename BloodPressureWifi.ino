@@ -90,24 +90,14 @@ void setup() {
 }
 
 void loop(){
+  mqtt.loop(); // let it work, otherwise it can't publish
   delay(500);
   // mqtt.publish directly in ISR does not work!
   if (HR) {
-    // noInterrupts();
-    delay(1000); // wait until interrupts are done, otherwise wifi fails
     Serial.printf("hiBP: %d, loBP: %d, HR: %d\n", hiBP, loBP, HR);
     mqtt.publish(MQTT_TOPIC, json("\"hiBP\": %d, \"loBP\": %d, \"HR\": %d", hiBP, loBP, HR));
     Serial.println("Published to MQTT.");
-
-    delay(1000);
-    // mqtt.publish(MQTT_TOPIC, json("\"hiBP2\": %d, \"loBP\": %d, \"HR\": %d", hiBP, loBP, HR));
-    // not realiably published... https://github.com/knolleary/pubsubclient/issues/452#issuecomment-505059218
-    mqtt.disconnect(); 
-    wifi.flush();
-    // wait until connection is closed completely
-    while( mqtt.state() != -1) delay(10);
-
-    HR = 0;
-    // ESP.reset(); // this resets before message is published!
+    HR = 0; n = 0;
+    // ESP.reset(); // this may reset before message is published! https://github.com/knolleary/pubsubclient/issues/452#issuecomment-505059218
   }
 }

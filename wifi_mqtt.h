@@ -43,7 +43,7 @@ void mqtt_connect(){
     clientId += String(random(0xffff), HEX);
     if (mqtt.connect(clientId.c_str())) {
       Serial.printf("connected as %s to mqtt://%s\n", clientId.c_str(), MQTT_SERVER);
-      mqtt.publish(MQTT_TOPIC "/status", json("\"millis\": %lu, \"event\": \"connect\", \"clientId\": \"%s\"", millis(), clientId.c_str())); // TODO millis() is really just the ms, not full unix timestamp!
+      // mqtt.publish(MQTT_TOPIC "/status", json("\"millis\": %lu, \"event\": \"connect\", \"clientId\": \"%s\"", millis(), clientId.c_str())); // TODO millis() is really just the ms, not full unix timestamp!
       // mqtt.subscribe("");
     } else {
       Serial.printf("failed, rc=%d. retry in 5s.\n", mqtt.state());
