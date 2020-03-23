@@ -1,10 +1,11 @@
 #include <assert.h>
+#include <MyConfig.h> // credentials, servers, ports
+#define MQTT_TOPIC "sensors/blood-pressure"
+#include "wifi_mqtt.h"
 
 #define CK D5 // SCK_PIN, SK: serial clock input
 #define DI D7 // MOSI_PIN, serial data input
 #define CS D8 // SS_PIN, chip select input
-
-#define debug false
 
 volatile bool cs; // chip select signal
 volatile bool di; // data input signal
@@ -48,9 +49,10 @@ void ICACHE_RAM_ATTR CS_change() {
     } else if (n == 6) {
       HR = byte1;
       loBP = byte2;
-      Serial.printf("hiBP: %d, loBP: %d, HR: %d\n", hiBP, loBP, HR);
+      // Serial.printf("hiBP: %d, loBP: %d, HR: %d\n", hiBP, loBP, HR);
     } else if (n == 8) {
-      n = 0; // sleep/reset ESP?
+      n = 0; // sleep/reset ESP anyway?
+      Serial.println("Last Block.");
     }
     i = 26; b = 0; // clear buffer
   }
@@ -74,6 +76,9 @@ void setup() {
   // Serial.setDebugOutput(true);
   Serial.println("setup");
 
+  setup_wifi();
+  setup_mqtt();
+
   pinMode(CS, INPUT);
   pinMode(CK, INPUT);
   pinMode(DI, INPUT);
@@ -85,5 +90,24 @@ void setup() {
 }
 
 void loop(){
-  
+  delay(500);
+  // mqtt.publish directly in ISR does not work!
+  if (HR) {
+    // noInterrupts();
+    delay(1000); // wait until interrupts are done, otherwise wifi fails
+    Serial.printf("hiBP: %d, loBP: %d, HR: %d\n", hiBP, loBP, HR);
+    mqtt.publish(MQTT_TOPIC, json("\"hiBP\": %d, \"loBP\": %d, \"HR\": %d", hiBP, loBP, HR));
+    Serial.println("Published to MQTT.");
+
+    delay(1000);
+    // mqtt.publish(MQTT_TOPIC, json("\"hiBP2\": %d, \"loBP\": %d, \"HR\": %d", hiBP, loBP, HR));
+    // not realiably published... https://github.com/knolleary/pubsubclient/issues/452#issuecomment-505059218
+    mqtt.disconnect(); 
+    wifi.flush();
+    // wait until connection is closed completely
+    while( mqtt.state() != -1) delay(10);
+
+    HR = 0;
+    // ESP.reset(); // this resets before message is published!
+  }
 }
