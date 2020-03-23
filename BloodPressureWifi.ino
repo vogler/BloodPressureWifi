@@ -7,10 +7,12 @@
 // https://forum.arduino.cc/index.php?topic=66998.0
 // ====================================================================
 
-#define SCK_PIN   13  // D13 = pin19 = PortB.5
-#define MISO_PIN  12  // D12 = pin18 = PortB.4
-#define MOSI_PIN  11  // D11 = pin17 = PortB.3
-#define SS_PIN    10  // D10 = pin16 = PortB.2
+#include <SPI.h>
+
+#define SCK_PIN   D5
+#define MISO_PIN  D6
+#define MOSI_PIN  D7
+#define SS_PIN    D8
 
 #define UL unsigned long
 #define US unsigned short
@@ -51,7 +53,7 @@ unsigned short Read2Bytes(void) {
  w.c[1] = SPDR;               // store high-order byte
  while(!(SPSR & (1<<SPIF))) ; // SPIF bit set when 8 bits received
  w.c[0] = SPDR;               // store low-order byte
- return (w.svar); // send back unsigned short value
+ return w.svar; // send back unsigned short value
 }
 
 void setup() {
@@ -70,10 +72,9 @@ void loop() {
  unsigned short word1;
  byte flag1;
 
-    // SS_PIN = Digital_10 = ATmega328 Pin 16 =  PORTB.2
    // Note: digitalRead() takes 4.1 microseconds
    // NOTE: SS_PIN cannot be properly read this way while SPI module is active!
-   while (digitalRead(SS_PIN)==1) {} // wait until SlaveSelect goes low (active)
+   while (digitalRead(SS_PIN)==0) {} // wait until SlaveSelect goes low (active)
 
    SPCR = (1<<SPE)|(0<<DORD)|(0<<MSTR)|(0<<CPOL)|(0<<CPHA)|(0<<SPR1)|(1<<SPR0); // SPI on
    word1 = Read2Bytes();          // read unsigned short value
